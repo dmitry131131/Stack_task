@@ -14,22 +14,35 @@ const size_t CAPACITY_POISON_VAL = 18446744073709;
 /// @brief Stack struct
 struct Stack
 {
-    elem_t* data;       ///< Data array pointer
-    size_t  size;       ///< Stack size(position of last element in array)
-    size_t  capacity;   ///< Capacity of stack(max length of stack array)
+    elem_t* data;                         ///< Data array pointer
+    size_t  size;                         ///< Stack size(position of last element in array)
+    size_t  capacity;                     ///< Capacity of stack(max length of stack array)
+
+    enum errorCode stackErrors;           ///< Enum with all of stack errors
+
+    struct StackHomeland stackHomeland;   ///< Struct with information about position where stack was initialised
+};
+
+/// @brief Struct with information about position where stack was initialised
+struct StackHomeland
+{
+    char* stackName;        ///< Name of stack variable
+    char* file;             ///< Name of file where stack was init
+    char* function;         ///< Name of function where struct was init
+    int   line;             ///< Line of file where struvt was init
 };
 
 /// @brief enum with stack error codes
 enum errorCode
 {
-    NO_ERRORS,              ///< No errors(everything is Ok)
-    NO_STACK_PTR,           ///< No stack pointer(passed NULL pointer to stack struct)
-    NO_STACK_DATA_PTR,      ///< No data pointer(passed NULL pointer to stack data)
-    SIZE_OUT_OF_CAPACITY,   ///< Size more than capacity(size >= capacity)
-    SIZE_NOT_VALID,         ///< Size variable filled poison value 
-    CAPACITY_NOT_VALID,     ///< Capacity variable filled poison value
-    NO_MEMORY,              ///< Calloc function can't alloc the memory
-    EMPTY_STACK             ///< Size is zero(empty stack)
+    NO_ERRORS             = 0,        ///< No errors(everything is Ok)
+    NO_STACK_PTR          = 1 << 0,   ///< No stack pointer(passed NULL pointer to stack struct)
+    NO_STACK_DATA_PTR     = 1 << 1,   ///< No data pointer(passed NULL pointer to stack data)
+    SIZE_OUT_OF_CAPACITY  = 1 << 2,   ///< Size more than capacity(size >= capacity)
+    SIZE_NOT_VALID        = 1 << 3,   ///< Size variable filled poison value 
+    CAPACITY_NOT_VALID    = 1 << 4,   ///< Capacity variable filled poison value
+    NO_MEMORY             = 1 << 5,   ///< Calloc function can't alloc the memory
+    EMPTY_STACK           = 1 << 6    ///< Size is zero(empty stack)
 };
 
 #define PRINT_LINE(stream, file, func, line) do{                        \
@@ -42,15 +55,15 @@ enum errorCode
     color_fprintf(stream, COLOR_BLUE, STYLE_BOLD, ")\n");               \
 }while(0)
 
-#define STACK_DTOR(stack) stack_dtor(stack, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_DTOR(stack) stack_dtor((stack), stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#define STACK_VERIFY(stack) stack_verify(stack, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_VERIFY(stack) stack_verify((stack), stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#define STACK_CTOR(stack, capacity) stack_ctor(stack, capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_CTOR(stack, capacity) stack_ctor((stack), capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#define STACK_PUSH(stack, value) stack_push(stack, value, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_PUSH(stack, value) stack_push((stack), value, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
  
-#define STACK_POP(stack) stack_pop(stack, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_POP(stack) stack_pop((stack), stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /**
  * @brief Verification function for stack - check all stack data is valid

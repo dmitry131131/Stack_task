@@ -12,44 +12,30 @@ enum errorCode stack_verify(struct Stack* stack, FILE* stream, const char* file,
 {
     if (!stack)
     {       
-        PRINT_LINE(stream, file, func, line);
-        print_error(stream, NO_STACK_PTR);                              
         return NO_STACK_PTR;
     }
 
     if (!stack->data)
     {
-        PRINT_LINE(stream, file, func, line);
-        print_error(stream, NO_STACK_DATA_PTR);
-        stack_dump(stream, stack);
-        return NO_STACK_DATA_PTR;
+        stack->stackErrors = (errorCode) (stack->stackErrors | NO_STACK_DATA_PTR);
     }
 
     if (stack->size >= stack->capacity)
     {      
-        PRINT_LINE(stream, file, func, line);
-        print_error(stream, SIZE_OUT_OF_CAPACITY);
-        stack_dump(stream, stack);       
-        return SIZE_OUT_OF_CAPACITY;
+        stack->stackErrors =(errorCode) (stack->stackErrors | SIZE_OUT_OF_CAPACITY);
     }
 
     if (stack->size == SIZE_POISON_VAL)
     {         
-        PRINT_LINE(stream, file, func, line);
-        print_error(stream, SIZE_NOT_VALID);
-        stack_dump(stream, stack);
-        return SIZE_NOT_VALID;
+        stack->stackErrors = (errorCode) (stack->stackErrors | SIZE_NOT_VALID);
     }
 
     if (stack->capacity == CAPACITY_POISON_VAL)
     {     
-        PRINT_LINE(stream, file, func, line);
-        print_error(stream, CAPACITY_NOT_VALID);
-        stack_dump(stream, stack);
-        return CAPACITY_NOT_VALID;
+        stack->stackErrors = (errorCode) (stack->stackErrors | CAPACITY_NOT_VALID);
     }
 
-    return NO_ERRORS;
+    return stack->stackErrors;
 }
 
 enum errorCode stack_ctor(struct Stack* stack, size_t capacity, FILE* stream, const char* file, int line, const char* func)
@@ -80,6 +66,8 @@ enum errorCode stack_ctor(struct Stack* stack, size_t capacity, FILE* stream, co
     stack->capacity = capacity;
     stack->size     = 0;
 
+
+    STACK_VERIFY(stack);
     return NO_ERRORS;
 }
 
