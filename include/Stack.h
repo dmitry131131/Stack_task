@@ -5,7 +5,7 @@
 #ifndef STACK_H
 #define STACK_H
 typedef int elem_t;
-const elem_t ELEM_T_POISON = 0;
+const elem_t ELEM_T_POISON = 1;
 
 const size_t REALLOC_COEF        = 2;
 const size_t SIZE_POISON_VAL     = 18446744073709;
@@ -50,7 +50,7 @@ enum errorCode
 
 #define STACK_PUSH(stack, value) stack_push(stack, value, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
  
-#define STACK_PULL(stack) stack_pull(stack, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_POP(stack) stack_pop(stack, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /**
  * @brief Verification function for stack - check all stack data is valid
@@ -95,7 +95,7 @@ enum errorCode stack_push(struct Stack* stack, elem_t value, FILE* stream, const
  * @param [out] error Pointer to errorCode enum
  * @return Value of last element from stack
 */
-elem_t stack_pull(struct Stack* stack, FILE* stream, const char* file, int line, const char* func);
+elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, const char* func);
 
 /**
  * @brief Print all information about stack in stream

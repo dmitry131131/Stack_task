@@ -17,7 +17,7 @@ BuildPrefix = build/
 BuildFolder = build
 Include = -Iinclude -IColor_console_output/include
 
-Sources = Stack.cpp
+Sources = Stack.cpp Output.cpp
 Main = main.cpp
 
 LibObjects = Color_console_output/build/Color_output.o

@@ -33,7 +33,7 @@ enum errorCode stack_verify(struct Stack* stack, FILE* stream, const char* file,
         return SIZE_OUT_OF_CAPACITY;
     }
 
-    if (stack->size     == SIZE_POISON_VAL)
+    if (stack->size == SIZE_POISON_VAL)
     {         
         PRINT_LINE(stream, file, func, line);
         print_error(stream, SIZE_NOT_VALID);
@@ -108,7 +108,7 @@ enum errorCode stack_dtor(struct Stack* stack, FILE* stream, const char* file, i
     return NO_ERRORS;
 }
 
-enum errorCode stack_realloc(struct Stack* stack)
+enum errorCode stack_realloc(struct Stack* stack)// сначала изменить capacity а потом realloc
 {
     if (!stack) return NO_STACK_PTR;
 
@@ -117,7 +117,7 @@ enum errorCode stack_realloc(struct Stack* stack)
         stack->data      = (elem_t*) realloc(stack->data, stack->capacity * sizeof(elem_t) * REALLOC_COEF);
         stack->capacity *= REALLOC_COEF;
     }
-    if (stack->size <= (size_t) stack->capacity / 4)
+    if (stack->size <= (size_t) stack->capacity / (2 * REALLOC_COEF))
     {
         stack->data      = (elem_t*) realloc(stack->data, (size_t) stack->capacity * sizeof(elem_t) / REALLOC_COEF);
         stack->capacity /= REALLOC_COEF;
@@ -154,7 +154,7 @@ enum errorCode stack_push(struct Stack* stack, elem_t value, FILE* stream, const
     return NO_ERRORS;
 }
 
-elem_t stack_pull(struct Stack* stack, FILE* stream, const char* file, int line, const char* func)
+elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, const char* func)
 {
     if (!stack)
     {
@@ -189,95 +189,4 @@ elem_t stack_pull(struct Stack* stack, FILE* stream, const char* file, int line,
     stack->data[stack->size] = ELEM_T_POISON;
 
     return ret;
-}
-
-enum errorCode stack_dump(FILE* stream, const struct Stack* stack)
-{
-    if (!stack) return NO_STACK_PTR;
-    
-    color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "size");
-    fprintf(stream, " = %lu\n", stack->size);
-
-    color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "capacity");
-    fprintf(stream, " = %lu\n", stack->capacity);
-
-    color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "data");
-    color_putc(stream, COLOR_BLUE, STYLE_BOLD, '[');
-    if (!stack->data) 
-    {
-        color_fprintf(stream, COLOR_DEFAULT, STYLE_INVERT_C, "NULL");
-        color_putc(stream, COLOR_BLUE, STYLE_BOLD, ']');
-        fprintf(stream, "\n");
-        return NO_STACK_DATA_PTR;
-    }
-    color_fprintf(stream, COLOR_DEFAULT, STYLE_INVERT_C, "%p", stack->data);
-    color_putc(stream, COLOR_BLUE, STYLE_BOLD, ']');
-    fprintf(stream, "\n");
-    for (size_t i = 0; i < stack->capacity; i++)
-    {
-        if (i < stack->size) 
-        {
-            color_putc(stream, COLOR_CYAN, STYLE_BOLD, '*');
-        }
-        else if (i == stack->size)
-        {
-            color_putc(stream, COLOR_CYAN, STYLE_BOLD, '>');
-        }
-        else
-            putc(' ', stream);
-        color_putc(stream, COLOR_YELLOW, STYLE_BOLD, '[');
-        fprintf(stream, "%lu", i);
-        color_putc(stream, COLOR_YELLOW, STYLE_BOLD, ']');
-        fprintf(stream, " = ");
-        if (stack->data[i] == ELEM_T_POISON)
-        {
-            color_fprintf(stream, COLOR_RED, STYLE_BOLD, "POISON\n");
-        }
-        else
-        {
-            fprintf(stream, "%d\n", stack->data[i]);
-        }
-    }
-    return NO_ERRORS;
-}
-
-void print_error(FILE* stream, enum errorCode error)
-{
-    color_fprintf(stream, COLOR_RED, STYLE_BOLD, "Error: ");
-    switch (error)
-    {
-    case NO_ERRORS:
-        break;
-    
-    case NO_STACK_PTR:
-        fprintf(stream, "Pointer to stack is NULL!\n");
-        break;
-    
-    case NO_STACK_DATA_PTR:
-        fprintf(stream, "Pointer to stack data is NULL!\n");
-        break;
-
-    case SIZE_OUT_OF_CAPACITY:
-        fprintf(stream, "Stack size more that stack capacity!\n");
-        break;
-
-    case SIZE_NOT_VALID:
-        fprintf(stream, "Stack size has a poison value(size invalid)!\n");
-        break;
-
-    case CAPACITY_NOT_VALID:
-        fprintf(stream, "Stack capacity has poison value(capacity invalid)!\n");
-        break;
-
-    case NO_MEMORY:
-        fprintf(stream, "Programm can't alloc the memory!\n");
-        break;
-
-    case EMPTY_STACK:
-        fprintf(stream, "Srack size is zero(stack is empty)!\n");
-        break;
-
-    default:
-        break;
-    }
 }
