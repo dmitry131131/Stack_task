@@ -101,7 +101,7 @@ enum errorCode stack_ctor(struct Stack* stack, size_t capacity, FILE* stream, co
 
     #ifdef USE_CANARY_PROTECTION
 
-    stack->data = (elem_t *) ((canary_t *) stack->data + 1);
+    stack->data = (elem_t*) ((canary_t*) stack->data + 1);
 
     *((canary_t*) stack->data - 1) = CANARY_T_DEFAULT;
 
@@ -165,8 +165,13 @@ enum errorCode stack_dtor(struct Stack* stack, FILE* stream, const char* file, i
     stack->stackHomeland.file      = NULL;
     stack->stackHomeland.function  = NULL;
     stack->stackHomeland.line      = -1;
+
+    #ifdef USE_CANARY_PROTECTION
+
     stack->leftCanary              = CANARY_T_POISON;
     stack->rightCanary             = CANARY_T_POISON;
+
+    #endif
 
     return NO_ERRORS;
 }
@@ -183,7 +188,7 @@ enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file
     {
         stack->capacity *= REALLOC_COEF;
     }
-    if (stack->size <= (size_t) stack->capacity / (2 * REALLOC_COEF))
+    else if (stack->size <= (size_t) stack->capacity / (2 * REALLOC_COEF))
     {
         stack->capacity /= REALLOC_COEF;
     }
@@ -197,6 +202,8 @@ enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file
     {
         stack->data[i] = ELEM_T_POISON;
     }
+    
+    *((canary_t*) (stack->data + stack->capacity)) = CANARY_T_DEFAULT;
     stack->data = (elem_t*) ((canary_t*) stack->data - 1);
 
     #else
@@ -235,11 +242,23 @@ enum errorCode stack_push(struct Stack* stack, elem_t value, FILE* stream, const
         if (err) return err;
     }
 
+    #ifdef USE_CANARY_PROTECTION
+    stack->data = (elem_t*) ((canary_t*) stack->data + 1);
+    #endif
+
     stack->data[stack->size++] = value;
+
+    #ifdef USE_CANARY_PROTECTION
+    stack->data = (elem_t*) ((canary_t*) stack->data - 1);
+    #endif
 
     #ifndef NO_DEBUG
 
     return stack_verify(stack, stream, file, line, func);
+
+    #else
+
+    return NO_ERRORS;
 
     #endif
 }
