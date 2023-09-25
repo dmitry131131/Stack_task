@@ -11,27 +11,6 @@ const size_t REALLOC_COEF        = 2;
 const size_t SIZE_POISON_VAL     = 18446744073709;
 const size_t CAPACITY_POISON_VAL = 18446744073709;
 
-/// @brief Stack struct
-struct Stack
-{
-    elem_t* data;                         ///< Data array pointer
-    size_t  size;                         ///< Stack size(position of last element in array)
-    size_t  capacity;                     ///< Capacity of stack(max length of stack array)
-
-    enum errorCode stackErrors;           ///< Enum with all of stack errors
-
-    struct StackHomeland stackHomeland;   ///< Struct with information about position where stack was initialised
-};
-
-/// @brief Struct with information about position where stack was initialised
-struct StackHomeland
-{
-    char* stackName;        ///< Name of stack variable
-    char* file;             ///< Name of file where stack was init
-    char* function;         ///< Name of function where struct was init
-    int   line;             ///< Line of file where struvt was init
-};
-
 /// @brief enum with stack error codes
 enum errorCode
 {
@@ -43,6 +22,27 @@ enum errorCode
     CAPACITY_NOT_VALID    = 1 << 4,   ///< Capacity variable filled poison value
     NO_MEMORY             = 1 << 5,   ///< Calloc function can't alloc the memory
     EMPTY_STACK           = 1 << 6    ///< Size is zero(empty stack)
+};
+
+/// @brief Struct with information about position where stack was initialised
+struct StackHomeland
+{
+    const char* stackName;        ///< Name of stack variable
+    const char* file;             ///< Name of file where stack was init
+    const char* function;         ///< Name of function where struct was init
+    int         line;             ///< Line of file where struvt was init
+};
+
+/// @brief Stack struct
+struct Stack
+{
+    elem_t* data;                         ///< Data array pointer
+    size_t  size;                         ///< Stack size(position of last element in array)
+    size_t  capacity;                     ///< Capacity of stack(max length of stack array)
+
+    enum errorCode stackErrors;           ///< Enum with all of stack errors
+
+    struct StackHomeland stackHomeland;   ///< Struct with information about position where stack was initialised
 };
 
 #define PRINT_LINE(stream, file, func, line) do{                        \
@@ -59,7 +59,14 @@ enum errorCode
 
 #define STACK_VERIFY(stack) stack_verify((stack), stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#define STACK_CTOR(stack, capacity) stack_ctor((stack), capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_CTOR(stack, capacity) do{                                                         \
+                                                                                                \
+    if(!stack_ctor((stack), capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__))         \
+    {                                                                                           \
+        (stack)->stackHomeland = {#stack, __FILE__, __PRETTY_FUNCTION__, __LINE__};             \
+    }                                                                                           \
+                                                                                                \
+}while(0)
 
 #define STACK_PUSH(stack, value) stack_push((stack), value, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
  
@@ -92,7 +99,7 @@ enum errorCode stack_dtor(struct Stack* stack, FILE* stream, const char* file, i
  * @param [in] stack Pointer to stack
  * @return Error code or NO_ERRORS if everything ok
 */
-enum errorCode stack_realloc(struct Stack* stack);
+enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file, int line, const char* func);
 
 /**
  * @brief Function puts value into stack
@@ -116,7 +123,7 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
  * @param [in] stack  Pointer to stack
  * @return Error code or NO_ERRORS if everything ok
 */
-enum errorCode stack_dump(FILE* stream, const struct Stack* stack);
+enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack);
 
 /**
  * @brief Function prints error description by errorCode in stream
@@ -124,5 +131,24 @@ enum errorCode stack_dump(FILE* stream, const struct Stack* stack);
  * @param [in] error  Error code
 */
 void print_error(FILE* stream, enum errorCode error);
+
+/**
+ * @brief Function prints stack homeland with name of stack and place where it was initialised
+ * @param [in] stream Output stream
+ * @param [in] stack  Pointer to stack that homeland will be prined
+ * @return Error code or NO_ERRORS if everything ok
+*/
+enum errorCode print_stack_homeland(FILE* stream, const struct Stack* stack);
+
+/**
+ * @brief Function print stack homeland print all of errors in stack and dumps stack information
+ * @param [in] stream Output stream
+ * @param [in] stack  Pointer to stack
+ * @param [in] file   File name 
+ * @param [in] func   Function name
+ * @param [in] line   Line number
+ * @return Error code or NO_ERRORS if everything ok
+*/
+enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line);
 
 #endif
