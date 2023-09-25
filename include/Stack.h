@@ -7,6 +7,16 @@
 typedef int elem_t;
 const elem_t ELEM_T_POISON = 10000;
 
+#define USE_CANARY_PROTECTION
+
+#ifdef USE_CANARY_PROTECTION
+
+typedef unsigned long long canary_t;
+const canary_t CANARY_T_DEFAULT = 0xBADC0FFEE;
+const canary_t CANARY_T_POISON  = 18446744073709;
+
+#endif
+
 const size_t REALLOC_COEF        = 2;
 const size_t SIZE_POISON_VAL     = 18446744073709;
 const size_t CAPACITY_POISON_VAL = 18446744073709;
@@ -14,14 +24,18 @@ const size_t CAPACITY_POISON_VAL = 18446744073709;
 /// @brief enum with stack error codes
 enum errorCode
 {
-    NO_ERRORS             = 0,        ///< No errors(everything is Ok)
-    NO_STACK_PTR          = 1 << 0,   ///< No stack pointer(passed NULL pointer to stack struct)
-    NO_STACK_DATA_PTR     = 1 << 1,   ///< No data pointer(passed NULL pointer to stack data)
-    SIZE_OUT_OF_CAPACITY  = 1 << 2,   ///< Size more than capacity(size >= capacity)
-    SIZE_NOT_VALID        = 1 << 3,   ///< Size variable filled poison value 
-    CAPACITY_NOT_VALID    = 1 << 4,   ///< Capacity variable filled poison value
-    NO_MEMORY             = 1 << 5,   ///< Calloc function can't alloc the memory
-    EMPTY_STACK           = 1 << 6    ///< Size is zero(empty stack)
+    NO_ERRORS                       = 0,        ///< No errors(everything is Ok)
+    NO_STACK_PTR                    = 1 << 0,   ///< No stack pointer(passed NULL pointer to stack struct)
+    NO_STACK_DATA_PTR               = 1 << 1,   ///< No data pointer(passed NULL pointer to stack data)
+    SIZE_OUT_OF_CAPACITY            = 1 << 2,   ///< Size more than capacity(size >= capacity)
+    SIZE_NOT_VALID                  = 1 << 3,   ///< Size variable filled poison value 
+    CAPACITY_NOT_VALID              = 1 << 4,   ///< Capacity variable filled poison value
+    NO_MEMORY                       = 1 << 5,   ///< Calloc function can't alloc the memory
+    EMPTY_STACK                     = 1 << 6,   ///< Size is zero(empty stack)
+    LEFT_CANARY_BAD_VALUE           = 1 << 7,   ///< Bad value of left canary
+    RIGHT_CANARY_BAD_VALUE          = 1 << 8,   ///< Bad value of right canary
+    LEFT_DATA_CANARY_BAD_VALUE      = 1 << 9,   ///< Bad value of right canary
+    RIGHT_DATA_CANARY_BAD_VALUE     = 1 << 10   ///< Bad value of right canary
 };
 
 /// @brief Struct with information about position where stack was initialised
@@ -36,6 +50,10 @@ struct StackHomeland
 /// @brief Stack struct
 struct Stack
 {
+    #ifdef USE_CANARY_PROTECTION
+    canary_t leftCanary;                  ///< Left protection canary
+    #endif
+
     elem_t* data;                         ///< Data array pointer
     size_t  size;                         ///< Stack size(position of last element in array)
     size_t  capacity;                     ///< Capacity of stack(max length of stack array)
@@ -43,6 +61,10 @@ struct Stack
     enum errorCode stackErrors;           ///< Enum with all of stack errors
 
     struct StackHomeland stackHomeland;   ///< Struct with information about position where stack was initialised
+
+    #ifdef USE_CANARY_PROTECTION
+    canary_t rightCanary;                 ///< Right protection canary
+    #endif
 };
 
 #define PRINT_LINE(stream, file, func, line) do{                        \
@@ -70,7 +92,9 @@ struct Stack
 
 #define STACK_PUSH(stack, value) stack_push((stack), value, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
  
-#define STACK_POP(stack) stack_pop((stack), stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define STACK_POP(stack) stack_pop((stack), stdout, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+#define STACK_DUMP(stack) stack_dump(stdout, (stack), __FILE__, __PRETTY_FUNCTION__, __LINE__)
 
 /**
  * @brief Verification function for stack - check all stack data is valid
