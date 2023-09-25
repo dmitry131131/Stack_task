@@ -82,6 +82,8 @@ enum errorCode stack_ctor(struct Stack* stack, size_t capacity, FILE* stream, co
 
     #ifdef USE_CANARY_PROTECTION
 
+    while ((capacity * sizeof(elem_t)) % (sizeof(canary_t)) != 0) capacity++;
+
     stack->data = (elem_t*) calloc(capacity*sizeof(elem_t) + 2*sizeof(canary_t), sizeof(char));
 
     #else
@@ -291,8 +293,16 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
 
     stack->size--;
 
+    #ifdef USE_CANARY_PROTECTION
+    stack->data = (elem_t*) ((canary_t*) stack->data + 1);
+    #endif
+
     elem_t ret = stack->data[stack->size];
     stack->data[stack->size] = ELEM_T_POISON;
+
+    #ifdef USE_CANARY_PROTECTION
+    stack->data = (elem_t*) ((canary_t*) stack->data - 1);
+    #endif
 
     #ifndef NO_DEBUG
 
