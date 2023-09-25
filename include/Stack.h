@@ -5,7 +5,7 @@
 #ifndef STACK_H
 #define STACK_H
 typedef int elem_t;
-const elem_t ELEM_T_POISON = 1;
+const elem_t ELEM_T_POISON = 10000;
 
 const size_t REALLOC_COEF        = 2;
 const size_t SIZE_POISON_VAL     = 18446744073709;
