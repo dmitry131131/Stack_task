@@ -7,11 +7,29 @@
 
 #include "Color_output.h"
 #include "Stack.h"
-#include "OutputSupporting.h"
 
 enum errorCode stack_verify(struct Stack* stack, FILE* stream, const char* file, int line, const char* func)
 {
     if (no_ptr(stream, stack, NO_STACK_PTR, file, func, line)) return NO_STACK_PTR;
+
+    #ifdef USE_HASH_PROTECTION
+
+    hash_t oldStructHash = stack->structHash;
+    hash_t oldDataHash   = stack->dataHash;
+
+    if (calculate_hash(stack)) return NO_STACK_PTR;
+
+    if (stack->structHash != oldStructHash)
+    {
+        stack->stackErrors = (errorCode) (stack->stackErrors | BAD_STRUCT_HASH);
+    }
+
+    if (stack->dataHash != oldDataHash)
+    {
+        stack->stackErrors = (errorCode) (stack->stackErrors | BAD_DATA_HASH);
+    }
+
+    #endif
 
     if (!stack->data)
     {
@@ -132,6 +150,12 @@ enum errorCode stack_ctor(struct Stack* stack, size_t capacity, FILE* stream, co
 
     #endif
 
+    #ifdef USE_HASH_PROTECTION
+
+    if (calculate_hash(stack)) return NO_STACK_PTR;
+
+    #endif
+
     #ifndef NO_DEBUG
 
     return stack_verify(stack, stream, file, line, func);
@@ -172,6 +196,13 @@ enum errorCode stack_dtor(struct Stack* stack, FILE* stream, const char* file, i
 
     stack->leftCanary              = CANARY_T_POISON;
     stack->rightCanary             = CANARY_T_POISON;
+
+    #endif
+
+    #ifdef USE_HASH_PROTECTION
+
+    stack->dataHash   = 0;
+    stack->structHash = 0;
 
     #endif
 
@@ -219,6 +250,12 @@ enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file
 
     #endif
 
+    #ifdef USE_HASH_PROTECTION
+
+    if (calculate_hash(stack)) return NO_STACK_PTR;
+
+    #endif
+
     #ifndef NO_DEBUG
 
     return stack_verify(stack, stream, file, line, func);
@@ -235,6 +272,8 @@ enum errorCode stack_push(struct Stack* stack, elem_t value, FILE* stream, const
     #ifndef NO_DEBUG
 
     if (no_ptr(stream, stack, NO_STACK_PTR, file, func, line)) return NO_STACK_PTR;
+
+    if (stack_verify(stack, stream, file, line, func)) return stack->stackErrors;
 
     #endif
 
@@ -254,6 +293,12 @@ enum errorCode stack_push(struct Stack* stack, elem_t value, FILE* stream, const
     stack->data = (elem_t*) ((canary_t*) stack->data - 1);
     #endif
 
+    #ifdef USE_HASH_PROTECTION
+
+    if (calculate_hash(stack)) return NO_STACK_PTR;
+
+    #endif
+
     #ifndef NO_DEBUG
 
     return stack_verify(stack, stream, file, line, func);
@@ -270,6 +315,9 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
     #ifndef NO_DEBUG
 
     if (no_ptr(stream, stack, NO_STACK_PTR, file, func, line)) return NO_STACK_PTR;
+
+    enum errorCode error = stack_verify(stack, stream, file, line, func);
+    if (error) return stack->stackErrors;
 
     #endif
 
@@ -302,6 +350,12 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
 
     #ifdef USE_CANARY_PROTECTION
     stack->data = (elem_t*) ((canary_t*) stack->data - 1);
+    #endif
+
+    #ifdef USE_HASH_PROTECTION
+
+    if (calculate_hash(stack)) return NO_STACK_PTR;
+    
     #endif
 
     #ifndef NO_DEBUG

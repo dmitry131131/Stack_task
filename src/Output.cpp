@@ -8,7 +8,6 @@
 
 #include "Color_output.h"
 #include "Stack.h"
-#include "OutputSupporting.h"
 
 enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line)
 {
@@ -138,6 +137,8 @@ void print_error(FILE* stream, enum errorCode error) //TODO assert
     PRINT_ERROR(error, RIGHT_CANARY_BAD_VALUE,              "Right struct canary has a bad value!\n");
     PRINT_ERROR(error, LEFT_DATA_CANARY_BAD_VALUE,          "Left data canary has a bad value!\n");
     PRINT_ERROR(error, RIGHT_DATA_CANARY_BAD_VALUE,         "Right data canary has a bad value!\n");
+    PRINT_ERROR(error, BAD_STRUCT_HASH,                     "Bad struct hash!\n");
+    PRINT_ERROR(error, BAD_DATA_HASH,                       "Bad data hash!\n");
 
     #undef PRINT_ERROR
 }

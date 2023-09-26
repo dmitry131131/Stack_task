@@ -4,16 +4,24 @@
 */
 #ifndef STACK_H
 #define STACK_H
+
 typedef int elem_t;
 const elem_t ELEM_T_POISON = 10000;
 
 #define USE_CANARY_PROTECTION
+#define USE_HASH_PROTECTION
 
 #ifdef USE_CANARY_PROTECTION
 
 typedef unsigned long long canary_t;
 const canary_t CANARY_T_DEFAULT = 0xBADC0FFEE;
 const canary_t CANARY_T_POISON  = 18446744073709;
+
+#endif
+
+#ifdef USE_HASH_PROTECTION
+
+typedef unsigned long long hash_t;
 
 #endif
 
@@ -35,7 +43,9 @@ enum errorCode
     LEFT_CANARY_BAD_VALUE           = 1 << 7,   ///< Bad value of left canary
     RIGHT_CANARY_BAD_VALUE          = 1 << 8,   ///< Bad value of right canary
     LEFT_DATA_CANARY_BAD_VALUE      = 1 << 9,   ///< Bad value of right canary
-    RIGHT_DATA_CANARY_BAD_VALUE     = 1 << 10   ///< Bad value of right canary
+    RIGHT_DATA_CANARY_BAD_VALUE     = 1 << 10,  ///< Bad value of right canary
+    BAD_STRUCT_HASH                 = 1 << 11,  ///< Bad struct hash
+    BAD_DATA_HASH                   = 1 << 12   ///< Bad data hash
 };
 
 /// @brief Struct with information about position where stack was initialised
@@ -60,6 +70,11 @@ struct Stack
 
     enum errorCode stackErrors;           ///< Enum with all of stack errors
 
+    #ifdef USE_HASH_PROTECTION
+    hash_t structHash;
+    hash_t dataHash;
+    #endif
+
     struct StackHomeland stackHomeland;   ///< Struct with information about position where stack was initialised
 
     #ifdef USE_CANARY_PROTECTION
@@ -83,9 +98,10 @@ struct Stack
 
 #define STACK_CTOR(stack, capacity) do{                                                         \
                                                                                                 \
-    if(!stack_ctor((stack), capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__))         \
+    if(!no_ptr(stderr, (stack), NO_STACK_PTR, __FILE__, __PRETTY_FUNCTION__, __LINE__))         \
     {                                                                                           \
         (stack)->stackHomeland = {#stack, __FILE__, __PRETTY_FUNCTION__, __LINE__};             \
+        stack_ctor((stack), capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__);         \
     }                                                                                           \
                                                                                                 \
 }while(0)
@@ -174,5 +190,15 @@ enum errorCode print_stack_homeland(FILE* stream, const struct Stack* stack);
  * @return Error code or NO_ERRORS if everything ok
 */
 enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line);
+
+enum errorCode no_ptr(FILE* stream, const void* ptr, enum errorCode error, const char* file, const char* func, int line);
+
+#ifdef USE_HASH_PROTECTION
+
+hash_t jdb2_hash(const void* ptr, size_t objectSize);
+
+#endif
+
+enum errorCode calculate_hash(struct Stack* stack);
 
 #endif

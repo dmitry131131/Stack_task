@@ -9,19 +9,7 @@ int main()
 
     STACK_CTOR(&stk, 1);
 
-    STACK_DUMP(&stk);
-
-    STACK_PUSH(&stk, 13);
-
-    STACK_DUMP(&stk);
-    
-    STACK_PUSH(&stk, 13);
-
-    STACK_DUMP(&stk);
-
-    fprintf(stdout, "%d\n", STACK_POP(&stk));
-
-    STACK_DUMP(&stk);
+    STACK_PUSH(&stk, 17);
 
     STACK_DTOR(&stk);
 
