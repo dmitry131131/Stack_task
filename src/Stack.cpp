@@ -209,7 +209,7 @@ enum errorCode stack_dtor(struct Stack* stack, FILE* stream, const char* file, i
     return NO_ERRORS;
 }
 
-enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file, int line, const char* func)//TODO сначала изменить capacity а потом realloc
+enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file, int line, const char* func)
 {
     #ifndef NO_DEBUG
 
@@ -316,8 +316,7 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
 
     if (no_ptr(stream, stack, NO_STACK_PTR, file, func, line)) return NO_STACK_PTR;
 
-    enum errorCode error = stack_verify(stack, stream, file, line, func);
-    if (error) return stack->stackErrors;
+    if (stack_verify(stack, stream, file, line, func)) return stack->stackErrors;
 
     #endif
 
@@ -328,6 +327,12 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
         stack->stackErrors = (errorCode) (stack->stackErrors | EMPTY_STACK);
         stack_dump(stream, stack, file, func, line);
 
+        #ifdef USE_HASH_PROTECTION
+
+        calculate_hash(stack);
+        
+        #endif
+
         #endif
 
         return ELEM_T_POISON;
@@ -335,8 +340,7 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
 
     if (stack->size <= (size_t) stack->capacity / 4)
     {
-        enum errorCode err = stack_realloc(stack, stream, file, line, func);
-        if (err) return ELEM_T_POISON;
+        if (stack_realloc(stack, stream, file, line, func)) return ELEM_T_POISON;
     }
 
     stack->size--;

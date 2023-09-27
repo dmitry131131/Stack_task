@@ -6,7 +6,7 @@
 #define STACK_H
 
 typedef int elem_t;
-const elem_t ELEM_T_POISON = 10000;
+const elem_t ELEM_T_POISON = 2147483647;
 
 #define USE_CANARY_PROTECTION
 #define USE_HASH_PROTECTION
@@ -103,6 +103,7 @@ struct Stack
         (stack)->stackHomeland = {#stack, __FILE__, __PRETTY_FUNCTION__, __LINE__};             \
         stack_ctor((stack), capacity, stderr, __FILE__, __LINE__, __PRETTY_FUNCTION__);         \
     }                                                                                           \
+    else print_error(stderr, NO_STACK_PTR);                                                     \
                                                                                                 \
 }while(0)
 
