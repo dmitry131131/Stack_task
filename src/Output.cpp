@@ -37,7 +37,7 @@ enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack)
     fprintf(stream, " = %llx\n", stack->rightCanary);
 
     #endif
-    
+
     color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "size");
     fprintf(stream, " = %lu\n", stack->size);
 

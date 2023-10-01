@@ -215,6 +215,8 @@ enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file
 
     if (no_ptr(stream, stack, NO_STACK_PTR, __FILE__, __func__, __LINE__)) return NO_STACK_PTR;
 
+    if (stack_verify(stack, stream, file, line, func)) return stack->stackErrors;
+
     #endif
 
     if (stack->size + 1 == stack->capacity)
