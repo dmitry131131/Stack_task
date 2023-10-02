@@ -31,15 +31,12 @@ objects = $(patsubst $(SourcePrefix)%.cpp, $(BuildPrefix)%.o, $(Source))
 
 all : release
 
-release: CXXFLAGS = -O3 -DNO_DEBUG
-release: folder
-release: $(objects)
+release : CXXFLAGS = -O3
+release : folder $(objects)
 	cd Color_console_output && make
 
-debug: cd Color_console_output && make debug
-debug: folder
-debug: $(objects)
-	cd Color_console_output && make
+debug : folder $(objects)
+	cd Color_console_output && make debug
 
 $(BuildPrefix)%.o : $(SourcePrefix)%.cpp
 	@echo [CXX] -c $< -o $@
