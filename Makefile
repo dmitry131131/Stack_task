@@ -18,32 +18,41 @@ BuildFolder = build
 Include = -Iinclude -IColor_console_output/include
 
 Sources = Stack.cpp Output.cpp Hash.cpp
-Main = main.cpp
+#Main = main.cpp
 
 LibObjects = Color_console_output/build/Color_output.o
 
-.PHONY : all clean folder
-
-all : folder $(TARGET)
-
 Source = $(addprefix $(SourcePrefix), $(Sources))
-MainObject = $(patsubst %.cpp, $(BuildPrefix)%.o, $(Main))
+#MainObject = $(patsubst %.cpp, $(BuildPrefix)%.o, $(Main))
 
 objects = $(patsubst $(SourcePrefix)%.cpp, $(BuildPrefix)%.o, $(Source))
 
-$(BuildPrefix)%.o : $(SourcePrefix)%.cpp
+.PHONY : all clean folder release debug
+
+all : release
+
+release: CXXFLAGS = -O3 -DNO_DEBUG
+release: folder
+release: $(objects)
 	cd Color_console_output && make
 
+debug: cd Color_console_output && make debug
+debug: folder
+debug: $(objects)
+	cd Color_console_output && make
+
+$(BuildPrefix)%.o : $(SourcePrefix)%.cpp
 	@echo [CXX] -c $< -o $@
 	@$(CXX) $(CXXFLAGS) $(Include) -c $< -o $@
 
-
-$(TARGET) : $(objects) $(MainObject) $(LibObjects)
+#Useless compilation part for compilling in main
+$(TARGET) : $(objects) $(LibObjects) #$(MainObject)
 	@echo [CC] $^ -o $@
 	@$(CXX) $(CXXFLAGS) $(Include) $^ -o $@
 
 clean :
-	rm $(TARGET) $(BuildFolder)/*.o
+	rm $(BuildFolder)/*.o
+#	rm $(TARGET)
 	cd Color_console_output && make clean
 
 folder :

@@ -192,14 +192,34 @@ enum errorCode print_stack_homeland(FILE* stream, const struct Stack* stack);
 */
 enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line);
 
+/**
+ * @brief Function checks that pointer isn't null
+ * @param [in] stream Output stream
+ * @param [in] ptr    Pointer to object
+ * @param [in] file   File name 
+ * @param [in] func   Function name
+ * @param [in] line   Line number
+ * @return Error code or NO_ERRORS if everything ok
+*/
 enum errorCode no_ptr(FILE* stream, const void* ptr, enum errorCode error, const char* file, const char* func, int line);
 
 #ifdef USE_HASH_PROTECTION
 
+/**
+ * @brief Function calculating jdb2 hash 
+ * @param [in] ptr        Pointer to object that need to hash
+ * @param [in] objectSize Object size in bytes
+ * @return Hash or 0 if error in calculating
+*/
 hash_t jdb2_hash(const void* ptr, size_t objectSize);
 
 #endif
 
+/**
+ * @brief Function recalculate hash of stack
+ * @param [in] stack Pointer to stack
+ * @return Error code or NO_ERRORS if everything ok
+*/
 enum errorCode calculate_hash(struct Stack* stack);
 
 #endif
