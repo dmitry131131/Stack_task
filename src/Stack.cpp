@@ -228,6 +228,8 @@ enum errorCode stack_realloc(struct Stack* stack, FILE* stream, const char* file
         stack->capacity /= REALLOC_COEF;
     }
 
+    while ((stack->capacity * sizeof(elem_t)) % (sizeof(canary_t)) != 0) stack->capacity++;
+
     #ifdef USE_CANARY_PROTECTION
 
     stack->data = (elem_t*) realloc(stack->data, stack->capacity * sizeof(elem_t) + 2 * sizeof(canary_t));
