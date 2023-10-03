@@ -60,7 +60,7 @@ $(BuildPrefix)$(TestPrefix)%.o : $(TestPrefix)%.cpp
 
 $(TEST_TARGET) : $(objects) $(LibObjects) $(test_objects)
 	@echo [CC] $^ -o $@
-	$(CXX) $(CXXFLAGS) $(Include) $^ -o $@
+	@$(CXX) $(CXXFLAGS) $(Include) $^ -o $@
 
 #Useless compilation part for compilling in main
 $(TARGET) : $(objects) $(LibObjects) #$(MainObject)

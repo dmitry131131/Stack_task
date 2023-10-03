@@ -203,6 +203,13 @@ enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* f
 */
 enum errorCode no_ptr(FILE* stream, const void* ptr, enum errorCode error, const char* file, const char* func, int line);
 
+/**
+ * @brief Function testing all struct functions
+ * @param [in] steram Message output stream
+ * @return Error code or NO_ERRORS if everything ok
+*/
+enum errorCode test_driver(FILE* stream);
+
 #ifdef USE_HASH_PROTECTION
 
 /**
