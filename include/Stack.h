@@ -57,6 +57,11 @@ struct StackHomeland
     int         line;             ///< Line of file where struvt was init
 };
 
+enum stackDumpMode {
+    FULL,
+    SHORT
+};
+
 /// @brief Stack struct
 struct Stack
 {
@@ -111,7 +116,7 @@ struct Stack
  
 #define STACK_POP(stack) stack_pop((stack), stdout, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#define STACK_DUMP(stack) stack_dump(stdout, (stack), __FILE__, __PRETTY_FUNCTION__, __LINE__)
+#define STACK_DUMP(stack, mode) stack_dump(stdout, (stack), __FILE__, __PRETTY_FUNCTION__, __LINE__, mode)
 
 /**
  * @brief Verification function for stack - check all stack data is valid
@@ -164,7 +169,7 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
  * @param [in] stack  Pointer to stack
  * @return Error code or NO_ERRORS if everything ok
 */
-enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack);
+enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack, stackDumpMode mode);
 
 /**
  * @brief Function prints error description by errorCode in stream
@@ -190,7 +195,7 @@ enum errorCode print_stack_homeland(FILE* stream, const struct Stack* stack);
  * @param [in] line   Line number
  * @return Error code or NO_ERRORS if everything ok
 */
-enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line);
+enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line, stackDumpMode mode);
 
 /**
  * @brief Function checks that pointer isn't null

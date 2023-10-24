@@ -11,7 +11,7 @@ int main()
 
     STACK_PUSH(&stk, 17);
 
-    STACK_DUMP(&stk);
+    STACK_DUMP(&stk, FULL);
 
     STACK_DTOR(&stk);
 

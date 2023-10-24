@@ -77,7 +77,7 @@ enum errorCode stack_verify(struct Stack* stack, FILE* stream, const char* file,
 
     #endif
 
-    if (stack->stackErrors) stack_dump(stream, stack, file, func, line);
+    if (stack->stackErrors) stack_dump(stream, stack, file, func, line, FULL);
 
 
     return stack->stackErrors;
@@ -329,7 +329,7 @@ elem_t stack_pop(struct Stack* stack, FILE* stream, const char* file, int line, 
         #ifndef NO_DEBUG
 
         stack->stackErrors = (errorCode) (stack->stackErrors | EMPTY_STACK);
-        stack_dump(stream, stack, file, func, line);
+        stack_dump(stream, stack, file, func, line, FULL);
 
         #ifdef USE_HASH_PROTECTION
 

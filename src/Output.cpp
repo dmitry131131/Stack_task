@@ -9,34 +9,38 @@
 #include "Color_output.h"
 #include "Stack.h"
 
-enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line)
+enum errorCode stack_dump(FILE* stream, const struct Stack* stack, const char* file, const char* func, int line, stackDumpMode mode)
 {
     if (no_ptr(stream, stack, NO_STACK_PTR, file, func, line)) return NO_STACK_PTR;
 
-    PRINT_LINE(stream, file, func, line);
+    if (mode == FULL)
+    {
+        PRINT_LINE(stream, file, func, line);
+        print_error(stream, stack->stackErrors);
+        if (print_stack_homeland(stream, stack)) return NO_STACK_PTR;
+    }
 
-    print_error(stream, stack->stackErrors);
-
-    if (print_stack_homeland(stream, stack)) return NO_STACK_PTR;
-
-    if (stack_data_dump(stream, stack)) return NO_STACK_PTR;
+    if (stack_data_dump(stream, stack, mode)) return NO_STACK_PTR;
 
     return NO_ERRORS;
 }
 
-enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack)
+enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack, stackDumpMode mode)
 {
     if (no_ptr(stream, stack, NO_STACK_PTR, __FILE__, __func__, __LINE__)) return NO_STACK_PTR;
 
-    #ifdef USE_CANARY_PROTECTION
+    if (mode == FULL)
+    {
+        #ifdef USE_CANARY_PROTECTION
 
-    color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "left canary");
-    fprintf(stream, " = %llx\n", stack->leftCanary);
+        color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "left canary");
+        fprintf(stream, " = %llx\n", stack->leftCanary);
 
-    color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "right canary");
-    fprintf(stream, " = %llx\n", stack->rightCanary);
+        color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "right canary");
+        fprintf(stream, " = %llx\n", stack->rightCanary);
 
-    #endif
+        #endif
+    }
 
     color_fprintf(stream, COLOR_PURPLE, STYLE_BOLD, "size");
     fprintf(stream, " = %lu\n", stack->size);
@@ -57,14 +61,21 @@ enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack)
     color_putc(stream, COLOR_BLUE, STYLE_BOLD, ']');
     fprintf(stream, "\n");
 
-    #ifdef USE_CANARY_PROTECTION
+    if (mode == FULL)
+    {
+        #ifdef USE_CANARY_PROTECTION
 
-    color_fprintf(stream, COLOR_YELLOW, STYLE_BOLD, "left data canary");
-    fprintf(stream, " = %llx\n", *((canary_t*) stack->data));
+        color_fprintf(stream, COLOR_YELLOW, STYLE_BOLD, "left data canary");
+        fprintf(stream, " = %llx\n", *((canary_t*) stack->data));
 
-    #endif
+        #endif
+    }
 
-    for (size_t i = 0; i < stack->capacity; i++)
+    size_t outputSize = 0;
+    if (mode == FULL) outputSize = stack->capacity;
+    else outputSize = stack->size;
+
+    for (size_t i = 0; i < outputSize; i++)
     {
         if (i < stack->size) 
         {
@@ -105,13 +116,16 @@ enum errorCode stack_data_dump(FILE* stream, const struct Stack* stack)
 
         #endif
     }
+    
+    if (mode == FULL)
+    {
+        #ifdef USE_CANARY_PROTECTION
 
-    #ifdef USE_CANARY_PROTECTION
+        color_fprintf(stream, COLOR_YELLOW, STYLE_BOLD, "right data canary");
+        fprintf(stream, " = %llx\n", *((canary_t*) (((elem_t*) ((canary_t*) stack->data + 1)) + stack->capacity)));
 
-    color_fprintf(stream, COLOR_YELLOW, STYLE_BOLD, "right data canary");
-    fprintf(stream, " = %llx\n", *((canary_t*) (((elem_t*) ((canary_t*) stack->data + 1)) + stack->capacity)));
-
-    #endif
+        #endif
+    }
 
     return NO_ERRORS;
 }
